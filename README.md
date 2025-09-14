@@ -1,55 +1,158 @@
-# Projeto: Monitoramento de Umidade do Solo com Raspberry Pi Pico com MicroPython
+# Projeto: Monitoramento de Umidade do Solo com Raspberry Pi Pico e MicroPython
 
-## Descrição
+## 📌 Descrição
 
-Este projeto tem como objetivo criar um dispositivo simples que monitora a umidade do solo e relata os dados em tempo real. Isso pode ser usado como parte de um sistema de monitoramento de Cultivo Agrícola, Agricultura de Precisão, Agricultura Urbana, Monitoramento Ambiental e uma infinidade de aplicações.
+Este projeto implementa um sistema de **monitoramento de umidade do solo** utilizando **Raspberry Pi Pico** e **MicroPython**.  
+Os dados de **umidade do solo**, **temperatura do ar** e **umidade relativa do ar** são coletados e armazenados em arquivo `.csv` para consulta posterior.  
 
-## Componentes Necessários
+A aplicação pode ser usada em:
+- 🌱 Agricultura de Precisão  
+- 🌿 Agricultura Urbana  
+- 🌍 Monitoramento Ambiental  
+- 🏠 Automação Residencial  
+- 📚 Projetos Educacionais e DIY  
 
-- Raspberry Pi Pico
-- Sensor de umidade do solo (por exemplo, um sensor de umidade do solo capacitivo)
-- Sensor DHT22, temperatura e umidade
-- Fios de conexão
-- Um computador com MicroPython configurado
+---
+
+## 🛠️ Componentes Necessários
+
+- Raspberry Pi Pico ou Pico W  
+- Sensor de umidade do solo capacitivo (analógico)  
+- Sensor DHT22 (temperatura e umidade do ar)  
+- Jumpers e protoboard  
+- Fonte USB ou bateria  
 
 ![Componentes](img/DHT22_UMIDADE_SOLO.png)
 
-## Breve Explicação do Código
+---
 
-- Esse código Python é um programa para coletar dados de sensores conectados a um Raspberry Pi Pico e determinar o estado do solo com base nas leituras. Aqui está uma breve explicação do que o código faz:
+## ⚡ Principais Funcionalidades do Código Atual
 
-- Importa as bibliotecas necessárias, incluindo "machine" para acessar os pinos do Raspberry Pi Pico, "dht" para lidar com o sensor DHT22 e "time" para pausas.
+### ✅ Melhorias Implementadas
+- **Conversão da leitura ADC em % de umidade do solo** (0% = seco, 100% = saturado).  
+- **Calibração personalizável**:
+  - Funções para calibrar valores de solo totalmente seco ou totalmente úmido.  
+- **Estado do solo classificado automaticamente**: `Seco`, `Úmido` ou `Intermediário`.  
+- **Armazenamento em CSV otimizado**:
+  - Arquivo único (`dados_sensores.csv`) criado automaticamente.  
+  - Registro resumido por ciclo com **timestamp**, **médias consolidadas**, número de amostras e estado do solo.  
+- **Modo Híbrido (Deep Sleep)**:
+  - Durante testes via USB: usa `time.sleep()` normal (**MODO_DEEP_SLEEP = False**).  
+  - Em bateria: usa `machine.deepsleep()` (**MODO_DEEP_SLEEP = True**) para economia de energia.  
+  - Coleta **1 min de amostras** → entra em **Deep Sleep** por 15 min (configurável).  
+- **Contador de ciclos** salvo em arquivo (`contador_ciclos.txt`).  
+- **Funções auxiliares de teste e calibração** para validar corretamente os valores.  
 
-- Define os pinos aos quais os sensores estão conectados. O sensor de solo é conectado a um pino analógico (ADC), e o sensor DHT22 é conectado a um pino digital.
+---
 
-- Inicializa o objeto DHT22 para permitir a leitura de temperatura e umidade.
+## 📊 Estrutura do Arquivo CSV
 
-- Define uma função coletar_media_sensor_solo(pin, num_amostras) que coleta leituras do sensor de solo e do sensor DHT22 ao longo de várias amostras. Ele calcula a média dessas leituras e imprime os resultados na tela.
+Arquivo gerado: **`dados_sensores.csv`**
 
-- Define uma função determinar_estado_solo(leitura) que determina o estado do solo com base na leitura do sensor de solo. Se a leitura estiver abaixo de um limite (threshold_umido), o solo é considerado úmido; se estiver acima de outro limite (threshold_seco), o solo é considerado seco; caso contrário, é considerado intermediário.
+**Cabeçalho:**
+```csv
+timestamp,ciclo,duracao_coleta_s,num_amostras,leitura_adc_media,tensao_v_media,umidade_solo_pct,estado_solo,temperatura_c,umidade_ar_pct
+```
+---
 
-- Na função main(), exibe uma mensagem introdutória e, em seguida, chama a função coletar_media_sensor_solo() para iniciar a coleta de dados.
+Exemplo de linha gravada:
 
-- Finalmente, verifica se o script está sendo executado como o programa principal (não importado como um módulo) e, se for o caso, chama a função main() para iniciar a coleta de dados.
+```csv
+2258,1,68,30,22854,1.15,93.5,Úmido,26.1,51.8
+Cada linha corresponde a um ciclo de coleta (1 min), com dados médios.
+```
 
-- No geral, o código coleta leituras de sensores de solo e umidade e calcula uma média ao longo de várias amostras, além de determinar o estado do solo (úmido, seco ou intermediário) com base nas leituras do sensor de solo. Os resultados são impressos no console da IDE.
+## 🚀 Como Usar
+🔧 Configuração inicial:
+Faça upload do código no Pico.
 
-![Montagem](img/Sensores.png)
+Conecte:
 
+Sensor de solo ao ADC26
 
-- EXEMPLO DE CÓDIGO PARA MONITORAMENTO:
+DHT22 ao GPIO2
 
-    [MONITORAMENTO DE UMIDADE DO SOLO - PI PICO](codigo/Monitor_Umidade_Solo.py)
+## 🎚️ Calibração (opcional, mas recomendado):
 
-- Código adptado da Versão para Arduino para Pi Pico com Micropython.
+```bash
+calibrar_solo_seco()   # com o sensor completamente seco
+calibrar_solo_umido()  # com o sensor em solo saturado de água
+Copie os valores médios obtidos e ajuste no código:
+```
 
-    Fonte Original Código para Arduino:
+```bash
+VALOR_SOLO_SECO = xxxx
+VALOR_SOLO_UMIDO = yyyy
+```
 
-    https://www.robocore.net/tutoriais/leitura-umidade-solo
+## ▶️ Execução normal:
+No desenvolvimento via USB/Thonny:
 
-Sinta-se à vontade para personalizar e adaptar o código de acordo com suas necessidades específicas.
+```bash
+MODO_DEEP_SLEEP = False
+No uso real/bateria:
+```
 
-Este código é versátil e pode ser aplicado em várias situações que requerem monitoramento do solo, temperatura e umidade, abrangendo diversas aplicações:
+```bash
+MODO_DEEP_SLEEP = True
+Inicie o monitoramento:
+```
 
-Agricultura de Precisão, Agricultura Urbana, Monitoramento Ambiental, Automação Residencial, Projetos Educacionais, Monitoramento de Condições Climáticas, Qualidade do Solo, Projetos DIY (Faça Você Mesmo)
+```bash
+main_modo_hibrido()
+🔋 Economia de Energia — Modo Híbrido
+Ciclo ativo: Pico coleta dados durante 1 minuto (~30 amostras).
 
+Ciclo inativo: Pico entra em Deep Sleep por 15 minutos.
+
+Autonomia: bateria pode durar de 10× a 50× mais em comparação a rodar continuamente.
+```
+
+## 🖼️ Exemplos de Execução
+
+Abaixo algumas capturas do projeto em funcionamento:
+
+![Iniciando Ciclo](img/IniciandoCiclo.JPG)
+![Ciclo 2 - DeepSleep Desativado](img/Ciclo2_DeepSleep_Desativado.JPG)
+![Aguardando Próximo Ciclo](img/AguardandoProximoCiclo.JPG)
+![Aguardando Ciclo 3 - Debug](img/AguardandoCiclo3_DeepSleep_Desativado_Debug.JPG)
+
+## 📷 Montagem Física
+
+Pico → Sensor Solo: GPIO26 (ADC0)
+
+Pico → DHT22: GPIO2 (com resistor pull-up de 10k)
+
+Alimentação: 3.3V para sensores
+
+![Montagem dos Sensores](img/Sensores.png)
+
+## 📂 Estrutura do Projeto
+
+```bash
+📦 Monitor_Umidade_Solo
+ ┣ 📜 Monitor_Umidade_Solo.py   # Código completo em MicroPython
+ ┣ 📜 dados_sensores.csv        # Arquivo de dados (gerado automaticamente)
+ ┣ 📜 contador_ciclos.txt       # Contador de ciclos (gerado automaticamente)
+ ┣ 📜 README.md                 # Documentação do projeto
+ ┣ 📂 img/                      # Imagens da montagem e componentes
+```
+
+## 🔗 Fonte Original
+Código inicial adaptado da versão Arduino para Raspberry Pi Pico:
+
+👉 Tutorial RoboCore: https://www.robocore.net/tutoriais/leitura-umidade-solo
+
+## 🌱 Aplicações Possíveis
+
+Agricultura de Precisão
+
+Irrigação automatizada (detecção de quando regar)
+
+Estações meteorológicas DIY
+
+Monitoramento ambiental
+
+Projetos de automação residencial
+
+## ✍️ Esse projeto foi personalizado para suportar monitoramento otimizado + robusto para uso em bateria, sendo capaz de rodar de forma eficiente por longos períodos.
